@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-// Importa o arquivo onde criamos a TelaInicial
-
 import 'tela_inicial.dart';
 
 void main() {
@@ -12,13 +10,9 @@ class MeuApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      // Define qual será a primeira tela aberta
-      // Neste caso: TelaIncial()
-
       home: TelaInicial(),
-    ); 
+    );
   }
 }
