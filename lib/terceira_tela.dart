@@ -1,67 +1,106 @@
-import 'package:flutter/material.dart';
-import 'terceira_tela.dart';
 
-class SegundaTela extends StatelessWidget {
+import 'package:flutter/material.dart';
+import 'quarta_tela.dart';
+
+class TerceiraTela extends StatefulWidget {
   final String organizador;
   final int times;
   final int dias;
+  final int jogadoresPorTime;
+  final int totalJogadores;
+  final double premiacaoPorTime;
+  final double custoDiario;
+  final double infraestrutura;
+  final double custoPremiacao;
+  final double alimentacao;
+  final double custoBruto;
 
-  SegundaTela({
+  const TerceiraTela({
     super.key,
     required this.organizador,
     required this.times,
     required this.dias,
+    required this.jogadoresPorTime,
+    required this.totalJogadores,
+    required this.premiacaoPorTime,
+    required this.custoDiario,
+    required this.infraestrutura,
+    required this.custoPremiacao,
+    required this.alimentacao,
+    required this.custoBruto,
   });
 
-  final jogadores = TextEditingController();
-  final premiacao = TextEditingController();
-  final custoDiario = TextEditingController();
+  @override
+  State<TerceiraTela> createState() => _TerceiraTelaState();
+}
 
-  // Método para abrir a terceira tela
-  void abrirTerceiraTela(BuildContext context) {
+class _TerceiraTelaState extends State<TerceiraTela> {
+  final arrecadacao = TextEditingController();
+  final banda = TextEditingController();
+
+  double saldo = 0;
+  double estresse = 0;
+  double taxaBanda = 0;
+
+  bool calculado = false;
+  bool riscoAlto = false;
+
+  // Método para calcular o saldo
+  void calcularSaldo(BuildContext context) {
     try {
-      int jogadoresPorTime = int.parse(jogadores.text);
-      double premiacaoPorTime = double.parse(premiacao.text);
-      double custoPorDia = double.parse(custoDiario.text);
+      double valorArrecadacao = double.parse(arrecadacao.text);
+      double valorBanda = double.parse(banda.text);
 
-      if (jogadoresPorTime <= 0 ||
-          premiacaoPorTime <= 0 ||
-          custoPorDia <= 0) {
-        mostrarErro(context, "Todos os valores devem ser maiores que zero.");
-      } else {
-        int totalJogadores = times * jogadoresPorTime;
-
-        double infraestrutura = totalJogadores * custoPorDia * dias;
-
-        double custoPremiacao = times * premiacaoPorTime;
-
-        double alimentacao = totalJogadores * dias * 40.00;
-
-        double custoBruto =
-            infraestrutura + custoPremiacao + alimentacao;
-
-        Navigator.push(
+      if (valorArrecadacao <= 0 ||
+          valorBanda < 1 ||
+          valorBanda > 100) {
+        mostrarErro(
           context,
-          MaterialPageRoute(
-            builder: (context) => TerceiraTela(
-              organizador: organizador,
-              times: times,
-              dias: dias,
-              jogadoresPorTime: jogadoresPorTime,
-              totalJogadores: totalJogadores,
-              premiacaoPorTime: premiacaoPorTime,
-              custoDiario: custoPorDia,
-              infraestrutura: infraestrutura,
-              custoPremiacao: custoPremiacao,
-              alimentacao: alimentacao,
-              custoBruto: custoBruto,
-            ),
-          ),
+          "Informe valores válidos. A banda deve ser de 1 a 100.",
         );
+      } else {
+        setState(() {
+          taxaBanda = valorBanda;
+
+          saldo = valorArrecadacao - widget.custoBruto;
+
+          estresse = (taxaBanda / 10) * widget.dias;
+
+          riscoAlto = taxaBanda > 85;
+
+          calculado = true;
+        });
       }
     } catch (e) {
       mostrarErro(context, "Digite valores numéricos válidos.");
     }
+  }
+
+  // Método para abrir a quarta tela
+  void abrirQuartaTela(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => QuartaTela(
+          organizador: widget.organizador,
+          times: widget.times,
+          dias: widget.dias,
+          jogadoresPorTime: widget.jogadoresPorTime,
+          totalJogadores: widget.totalJogadores,
+          premiacaoPorTime: widget.premiacaoPorTime,
+          custoDiario: widget.custoDiario,
+          infraestrutura: widget.infraestrutura,
+          custoPremiacao: widget.custoPremiacao,
+          alimentacao: widget.alimentacao,
+          custoBruto: widget.custoBruto,
+          arrecadacao: double.parse(arrecadacao.text),
+          taxaBanda: taxaBanda,
+          saldo: saldo,
+          estresse: estresse,
+          riscoAlto: riscoAlto,
+        ),
+      ),
+    );
   }
 
   // Método para mostrar erro
@@ -87,46 +126,78 @@ class SegundaTela extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Custos do Campeonato"),
+        title: const Text("Arrecadação e Rede"),
       ),
       body: Padding(
         padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            Text("Organizador: $organizador"),
-            Text("Times: $times"),
-            Text("Dias: $dias"),
-            const SizedBox(height: 15),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              Text(
+                "Custo total: R\$ ${widget.custoBruto.toStringAsFixed(2)}",
+              ),
 
-            TextField(
-              controller: jogadores,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: "Jogadores por time",
+              TextField(
+                controller: arrecadacao,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                decoration: const InputDecoration(
+                  labelText: "Arrecadação do campeonato",
+                ),
               ),
-            ),
-            TextField(
-              controller: premiacao,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: "Premiação por time",
+              TextField(
+                controller: banda,
+                keyboardType: const TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: "Taxa de banda (1 a 100)",
+                ),
               ),
-            ),
-            TextField(
-              controller: custoDiario,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: "Custo diário por jogador",
+              const SizedBox(height: 20),
+
+              ElevatedButton(
+                onPressed: () {
+                  calcularSaldo(context);
+                },
+                child: const Text("Calcular saldo"),
               ),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                abrirTerceiraTela(context);
-              },
-              child: const Text("Calcular custos"),
-            ),
-          ],
+
+              if (calculado) ...[
+                const SizedBox(height: 20),
+
+                Text(
+                  "Saldo: R\$ ${saldo.toStringAsFixed(2)}",
+                  style: TextStyle(
+                    fontSize: 20,
+                    color: saldo < 0 ? Colors.red : Colors.green,
+                  ),
+                ),
+
+                Text(
+                  "Estresse da rede: ${estresse.toStringAsFixed(2)}",
+                ),
+
+                if (saldo < 0)
+                  const Text(
+                    "Atenção: Deficit Financeiro Detectado!",
+                    style: TextStyle(color: Colors.red),
+                  ),
+
+                if (riscoAlto)
+                  const Text(
+                    "Atenção: Alto risco de lag!",
+                    style: TextStyle(color: Colors.red),
+                  ),
+
+                const SizedBox(height: 20),
+
+                ElevatedButton(
+                  onPressed: () {
+                    abrirQuartaTela(context);
+                  },
+                  child: const Text("Gerar relatório"),
+                ),
+              ],
+            ],
+          ),
         ),
       ),
     );

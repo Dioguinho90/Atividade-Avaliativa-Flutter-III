@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'terceira_tela.dart';
 
@@ -107,14 +108,14 @@ class SegundaTela extends StatelessWidget {
             ),
             TextField(
               controller: premiacao,
-              keyboardType: TextInputType.number,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
               decoration: const InputDecoration(
                 labelText: "Premiação por time",
               ),
             ),
             TextField(
               controller: custoDiario,
-              keyboardType: TextInputType.number,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
               decoration: const InputDecoration(
                 labelText: "Custo diário por jogador",
               ),

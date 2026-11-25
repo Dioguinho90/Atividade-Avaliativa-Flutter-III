@@ -1,7 +1,8 @@
-import 'package:flutter/material.dart';
-import 'quarta_tela.dart';
 
-class TerceiraTela extends StatefulWidget {
+import 'package:flutter/material.dart';
+import 'tela_inicial.dart';
+
+class QuartaTela extends StatelessWidget {
   final String organizador;
   final int times;
   final int dias;
@@ -13,8 +14,13 @@ class TerceiraTela extends StatefulWidget {
   final double custoPremiacao;
   final double alimentacao;
   final double custoBruto;
+  final double arrecadacao;
+  final double taxaBanda;
+  final double saldo;
+  final double estresse;
+  final bool riscoAlto;
 
-  const TerceiraTela({
+  const QuartaTela({
     super.key,
     required this.organizador,
     required this.times,
@@ -27,157 +33,130 @@ class TerceiraTela extends StatefulWidget {
     required this.custoPremiacao,
     required this.alimentacao,
     required this.custoBruto,
+    required this.arrecadacao,
+    required this.taxaBanda,
+    required this.saldo,
+    required this.estresse,
+    required this.riscoAlto,
   });
 
-  @override
-  State<TerceiraTela> createState() => _TerceiraTelaState();
-}
-
-class _TerceiraTelaState extends State<TerceiraTela> {
-  final arrecadacao = TextEditingController();
-  final banda = TextEditingController();
-
-  double saldo = 0;
-  double estresse = 0;
-  double taxaBanda = 0;
-
-  bool calculado = false;
-  bool riscoAlto = false;
-
-  // Método para calcular o saldo
-  void calcularSaldo(BuildContext context) {
-    try {
-      double valorArrecadacao = double.parse(arrecadacao.text);
-      taxaBanda = double.parse(banda.text);
-
-      if (valorArrecadacao <= 0 || taxaBanda < 1 || taxaBanda > 100) {
-        mostrarErro(context, "Informe valores válidos. A banda deve ser de 1 a 100.");
-      } else {
-        setState(() {
-          saldo = valorArrecadacao - widget.custoBruto;
-
-          estresse = (taxaBanda / 10) * widget.dias;
-
-          riscoAlto = taxaBanda > 85;
-
-          calculado = true;
-        });
-      }
-    } catch (e) {
-      mostrarErro(context, "Digite valores numéricos válidos.");
-    }
-  }
-
-  // Método para abrir a quarta tela
-  void abrirQuartaTela(BuildContext context) {
-    Navigator.push(
+  // Método para iniciar um novo campeonato
+  void novoCampeonato(BuildContext context) {
+    Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(
-        builder: (context) => QuartaTela(
-          organizador: widget.organizador,
-          times: widget.times,
-          dias: widget.dias,
-          jogadoresPorTime: widget.jogadoresPorTime,
-          totalJogadores: widget.totalJogadores,
-          premiacaoPorTime: widget.premiacaoPorTime,
-          custoDiario: widget.custoDiario,
-          infraestrutura: widget.infraestrutura,
-          custoPremiacao: widget.custoPremiacao,
-          alimentacao: widget.alimentacao,
-          custoBruto: widget.custoBruto,
-          arrecadacao: double.parse(arrecadacao.text),
-          taxaBanda: taxaBanda,
-          saldo: saldo,
-          estresse: estresse,
-          riscoAlto: riscoAlto,
-        ),
+        builder: (context) => TelaInicial(),
       ),
-    );
-  }
-
-  // Método para mostrar erro
-  void mostrarErro(BuildContext context, String mensagem) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Atenção"),
-        content: Text(mensagem),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            child: const Text("OK"),
-          ),
-        ],
-      ),
+      (route) => false,
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    String resultado;
+
+    if (saldo >= 0 && taxaBanda <= 85) {
+      resultado =
+          "Evento de Sucesso Absoluto (Sem Lag e Com Lucro)";
+    } else if (saldo >= 0 && taxaBanda > 85) {
+      resultado =
+          "Lucrativo, mas com Instabilidade de Rede";
+    } else {
+      resultado =
+          "Evento Prejudicial (Prejuízo Financeiro)";
+    }
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Arrecadação e Rede"),
+        title: const Text("Relatório Final"),
       ),
       body: Padding(
         padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            Text("Custo total: R\$ ${widget.custoBruto.toStringAsFixed(2)}"),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text("Organizador: $organizador"),
+              Text("Quantidade de times: $times"),
+              Text("Dias de evento: $dias"),
+              Text("Jogadores por time: $jogadoresPorTime"),
+              Text("Total de jogadores: $totalJogadores"),
 
-            TextField(
-              controller: arrecadacao,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: "Arrecadação do campeonato",
+              const SizedBox(height: 15),
+
+              const Text(
+                "DISCRIMINAÇÃO DOS CUSTOS",
+                style: TextStyle(fontWeight: FontWeight.bold),
               ),
-            ),
-            TextField(
-              controller: banda,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: "Taxa de banda (1 a 100)",
+
+              Text(
+                "Infraestrutura: R\$ ${infraestrutura.toStringAsFixed(2)}",
               ),
-            ),
-            const SizedBox(height: 20),
+              Text(
+                "Premiação: R\$ ${custoPremiacao.toStringAsFixed(2)}",
+              ),
+              Text(
+                "Alimentação: R\$ ${alimentacao.toStringAsFixed(2)}",
+              ),
+              Text(
+                "Custo bruto: R\$ ${custoBruto.toStringAsFixed(2)}",
+              ),
 
-            ElevatedButton(
-              onPressed: () {
-                calcularSaldo(context);
-              },
-              child: const Text("Calcular saldo"),
-            ),
+              const SizedBox(height: 15),
 
-            if (calculado) ...[
-              const SizedBox(height: 20),
+              const Text(
+                "RESULTADO FINANCEIRO",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+
+              Text(
+                "Arrecadação: R\$ ${arrecadacao.toStringAsFixed(2)}",
+              ),
               Text(
                 "Saldo: R\$ ${saldo.toStringAsFixed(2)}",
                 style: TextStyle(
-                  fontSize: 20,
                   color: saldo < 0 ? Colors.red : Colors.green,
                 ),
               ),
-              Text("Estresse da rede: ${estresse.toStringAsFixed(2)}"),
-              if (saldo < 0)
-                const Text(
-                  "Atenção: Deficit Financeiro Detectado!",
-                  style: TextStyle(color: Colors.red),
+
+              const SizedBox(height: 15),
+
+              const Text(
+                "ANÁLISE DA REDE",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+
+              Text(
+                "Estresse da rede: ${estresse.toStringAsFixed(2)}",
+              ),
+              Text("Taxa de banda: $taxaBanda"),
+              Text("Risco de lag: ${riscoAlto ? "Alto" : "Baixo"}"),
+
+              const SizedBox(height: 15),
+
+              const Text(
+                "STATUS FINAL",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+
+              Text(
+                resultado,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
                 ),
-              if (riscoAlto)
-                const Text(
-                  "Atenção: Alto risco de lag!",
-                  style: TextStyle(color: Colors.red),
-                ),
-              const SizedBox(height: 20),
+              ),
+
+              const SizedBox(height: 25),
+
               ElevatedButton(
                 onPressed: () {
-                  abrirQuartaTela(context);
+                  novoCampeonato(context);
                 },
-                child: const Text("Gerar relatório"),
+                child: const Text("Novo Campeonato"),
               ),
             ],
-          ],
+          ),
         ),
       ),
     );
