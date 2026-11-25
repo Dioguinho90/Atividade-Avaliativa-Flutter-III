@@ -41,6 +41,7 @@ class _TerceiraTelaState extends State<TerceiraTela> {
   double saldo = 0;
   double estresse = 0;
   double taxaBanda = 0;
+  double valorArrecadacao = 0;
 
   bool calculado = false;
   bool riscoAlto = false;
@@ -48,18 +49,26 @@ class _TerceiraTelaState extends State<TerceiraTela> {
   // Método para calcular o saldo
   void calcularSaldo(BuildContext context) {
     try {
-      double valorArrecadacao = double.parse(arrecadacao.text);
-      double valorBanda = double.parse(banda.text);
+      double valor = double.parse(
+        arrecadacao.text.replaceAll(',', '.'),
+      );
 
-      if (valorArrecadacao <= 0 ||
-          valorBanda < 1 ||
-          valorBanda > 100) {
+      double valorBanda = double.parse(
+        banda.text.replaceAll(',', '.'),
+      );
+
+      setState(() {
+        calculado = false;
+      });
+
+      if (valor <= 0 || valorBanda < 1 || valorBanda > 100) {
         mostrarErro(
           context,
           "Informe valores válidos. A banda deve ser de 1 a 100.",
         );
       } else {
         setState(() {
+          valorArrecadacao = valor;
           taxaBanda = valorBanda;
 
           saldo = valorArrecadacao - widget.custoBruto;
@@ -72,7 +81,14 @@ class _TerceiraTelaState extends State<TerceiraTela> {
         });
       }
     } catch (e) {
-      mostrarErro(context, "Digite valores numéricos válidos.");
+      setState(() {
+        calculado = false;
+      });
+
+      mostrarErro(
+        context,
+        "Digite valores numéricos válidos.",
+      );
     }
   }
 
@@ -93,7 +109,7 @@ class _TerceiraTelaState extends State<TerceiraTela> {
           custoPremiacao: widget.custoPremiacao,
           alimentacao: widget.alimentacao,
           custoBruto: widget.custoBruto,
-          arrecadacao: double.parse(arrecadacao.text),
+          arrecadacao: valorArrecadacao,
           taxaBanda: taxaBanda,
           saldo: saldo,
           estresse: estresse,
@@ -123,6 +139,13 @@ class _TerceiraTelaState extends State<TerceiraTela> {
   }
 
   @override
+  void dispose() {
+    arrecadacao.dispose();
+    banda.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -139,18 +162,24 @@ class _TerceiraTelaState extends State<TerceiraTela> {
 
               TextField(
                 controller: arrecadacao,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
                 decoration: const InputDecoration(
                   labelText: "Arrecadação do campeonato",
                 ),
               ),
+
               TextField(
                 controller: banda,
-                keyboardType: const TextInputType.number,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
                 decoration: const InputDecoration(
                   labelText: "Taxa de banda (1 a 100)",
                 ),
               ),
+
               const SizedBox(height: 20),
 
               ElevatedButton(
